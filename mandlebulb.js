@@ -13,14 +13,14 @@ const fragmentShaderSource = `
         uniform mat3 cameraMatrix;
         const float EPSILON = 0.001;
         const float MAX_DIST = 200.0;
-        const int MAX_STEPS = 100;
+        const int MAX_STEPS = 200;
         uniform float Power;
 
         float SDF(vec3 pos, out int steps) {
             vec3 z = pos;
             float dr = 1.0;
             float r = 0.0;
-            for (int i = 0; i < 500; i++) {
+            for (int i = 0; i < 100; i++) {
                 r = length(z);
                 steps = i;
                 if (r > 4.0) break;
@@ -214,18 +214,14 @@ function main() {
         keys[event.key] = false;
     });
 
-    // Mouse movement listener to change yaw and pitch
     window.addEventListener('mousemove', (event) => {
         if (!pointerLocked) return;
 
-        const sensitivity = 0.002; // Adjust the sensitivity to your preference
+        const sensitivity = 0.002;
         yaw -= event.movementX * sensitivity;
         pitch -= event.movementY * sensitivity;
 
-        // Clamp the pitch to prevent flipping the camera upside down
-        const maxPitch = Math.PI / 2 - 0.01;
-        const minPitch = -Math.PI / 2 + 0.01;
-        // pitch = Math.max(minPitch, Math.min(maxPitch, pitch));
+
     });
 
     function getCameraMatrix(yaw, pitch) {
@@ -241,12 +237,44 @@ function main() {
         ]);
     }
 
+    function getDistanceToMandelbulb(cameraPosition, cameraDirection, maxSteps = 200) {
+        const gl = canvas.getContext('webgl');
+
+        gl.useProgram(program);
+        gl.uniform3fv(roLocation, cameraPosition);
+        gl.uniformMatrix3fv(cameraMatrixLocation, false, cameraDirection);
+        const framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        const pixelData = new Uint8Array(4);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelData);
+        let MAX_DIST = 200.0;
+        const dist = pixelData[0] / 255 * MAX_DIST;
+
+        gl.deleteFramebuffer(framebuffer);
+        gl.deleteTexture(texture);
+
+        return dist;
+    }
+
     function render() {
         gl.clear(gl.COLOR_BUFFER_BIT);
+        const cameraMatrix = getCameraMatrix(yaw, pitch);
 
+        const distance = getDistanceToMandelbulb(cameraPosition, cameraMatrix);
+        if (distance == 0) {
+            cameraSpeed = 0.005;
+        }
+        else {
+            cameraSpeed = (250 - distance) / 80000;
+
+        }
         updateCameraPosition();
 
-        const cameraMatrix = getCameraMatrix(yaw, pitch);
 
         gl.uniform2f(iResolutionLocation, canvas.width, canvas.height);
         gl.uniform3fv(roLocation, cameraPosition);

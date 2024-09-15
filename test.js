@@ -128,7 +128,7 @@ function main() {
     gl.useProgram(program);
 
     const resolutionLocation = gl.getUniformLocation(program, 'uResolution');
-    const timeLocation = gl.getUniformLocation(program, 'uTime');
+    // const timeLocation = gl.getUniformLocation(program, 'uTime');
     const cameraPosLocation = gl.getUniformLocation(program, 'uCameraPos');
     const cameraDirLocation = gl.getUniformLocation(program, 'uCameraDir');
 
@@ -168,7 +168,7 @@ function main() {
         time *= 0.001;
 
         gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-        gl.uniform1f(timeLocation, time);
+        // gl.uniform1f(timeLocation, time);
         gl.uniform3fv(cameraPosLocation, cameraPos);
         gl.uniform3fv(cameraDirLocation, cameraDir);
 
