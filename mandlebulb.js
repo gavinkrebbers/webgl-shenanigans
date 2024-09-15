@@ -270,7 +270,7 @@ function main() {
             cameraSpeed = 0.005;
         }
         else {
-            cameraSpeed = (250 - distance) / 80000;
+            cameraSpeed = (250 - distance) / 200000;
 
         }
         updateCameraPosition();
