@@ -42,7 +42,7 @@ const fragmentShaderSource = `
         vec3 normal(vec3 point) {
             vec2 e = vec2(EPSILON, 0.0);
             int steps = 0;
-            return normalize(
+            return adjustLength(
                 SDF(point, steps) - vec3(
                     SDF(point + e.xyy, steps),
                     SDF(point + e.yxy, steps),
@@ -64,7 +64,7 @@ const fragmentShaderSource = `
 
         void main() {
             vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
-            vec3 rd = normalize(cameraMatrix * vec3(uv, -1.0));
+            vec3 rd = adjustLength(cameraMatrix * vec3(uv, -1.0));
             int steps = 0;
             float dist = march(ro, rd, steps);
             if (dist < MAX_DIST) {
@@ -288,7 +288,6 @@ function main() {
     render();
 }
 
-// main();
 
 
 main();
